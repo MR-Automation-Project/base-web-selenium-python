@@ -2,12 +2,12 @@
 # custom base method ini akan terus diupdate / dikurangi sesuai kebutuhan.
 
 import logging
-import os
 import time
-from selenium.common import TimeoutException, NoSuchElementException
+import base64
+from selenium.common.exceptions import TimeoutException, NoSuchElementException, UnexpectedTagNameException
 from selenium.webdriver import ActionChains, Keys
 from selenium.webdriver.remote.webelement import WebElement
-from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
 
 
@@ -17,30 +17,35 @@ class Basemethod:
 
     def __init__(self, driver):
         self.driver = driver
+        self.wait = WebDriverWait(self.driver, self.waitTime)
+
+    def _take_screenshot_base64(self):
+        """Fungsi Mengambil screenshot dalam format base64"""
+        try:
+            return self.driver.get_screenshot_as_base64()
+        except Exception as e:
+            logging.error(f"Error taking base64 screenshot: {e}")
+            return None
 
     def _click_on(self, locator):
+        """Klik pada elemen"""
         try:
             if isinstance(locator, tuple):
-                WebDriverWait(self.driver, self.waitTime).until(EC.element_to_be_clickable(locator)).click()
-            elif isinstance(locator, WebElement):
-                locator.click()
-            else:
-                raise ValueError("Invalid input locator. please give tuple format or WebElement instance")
-                # Handling Tuple --> (By.Xpath, '//div[@class="user"]'
-                # Handling WebElement  --> driver.find_element(By.ID, 'login-button')
-        except(TimeoutException, NoSuchElementException) as e:
-            logging.error(f"Error while clicking element: {e}")
+                self.wait.until(EC.element_to_be_clickable(locator)).click()
+                return True
         except Exception as e:
-            logging.error(f"Error saat mengklik elemen: {e}")
+            logging.error(f"Error clicking element: {e}")
+            return self._take_screenshot_base64()
 
     def _input(self, locator, input_text):
-        element = WebDriverWait(self.driver, self.waitTime).until(EC.visibility_of_element_located(locator))
-        element.clear()
-        element.send_keys(input_text)
+        text_field = self.wait.until(EC.visibility_of_element_located(locator))
+        text_field.clear()
+        text_field.send_keys(input_text)
 
     def _clear_on_textbox(self, locator):
-        WebDriverWait(self.driver, self.waitTime).until(EC.visibility_of_element_located(locator)).clear()
+        self.wait.until(EC.visibility_of_element_located(locator)).clear()
 
+    ## Lanjut disini besok refactor some functoin method.
     def _is_element_visible(self, locator):
         element = WebDriverWait(self.driver, self.waitTime).until(EC.visibility_of_element_located(locator))
         return bool(element)
