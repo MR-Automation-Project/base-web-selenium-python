@@ -18,5 +18,7 @@ accounts = [
 ]
 
 products_name = [
-    {"nama_produk1": "Sauce Labs Bike Light", "nama_produk2": "Sauce Labs Fleece Jacket", "nama_produk3": "Sauce Labs Backpack"}
+    {"nama_produk1": "Sauce Labs Bike Light",
+     "nama_produk2": "Sauce Labs Fleece Jacket",
+     "nama_produk3": "Sauce Labs Backpack"}
 ]
