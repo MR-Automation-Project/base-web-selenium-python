@@ -5,7 +5,7 @@ Buat instansiasi object dari action method seperti pada loginpage dibawah ini
 from pages.aboutpage import AboutPageAction
 from pages.cartpage import CartPageAction
 from pages.loginpage import LoginPageAction
-from pages.productspage import ProductsPageAction
+from pages.productpage import ProductsPageAction
 
 
 class ObjectInstances:
