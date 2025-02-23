@@ -1,4 +1,5 @@
 This repository is base project for your web automation creation using selenium python with pytest framework.
+I also provide some test files, by providing a test example on saucedemo.com.
 
 ## Prerequisites:
 Make sure you have the following installed:
