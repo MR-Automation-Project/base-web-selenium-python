@@ -1,26 +1,23 @@
-from pages.loginpage_example import LoginPageAction
-# from pages.aboutpage import AboutPageAction
-# from pages.cartpage import CartPageAction
-# from pages.productspage import ProductsPageAction
+"""
+Buat instansiasi object dari action method seperti pada loginpage dibawah ini
+        agar lebih efektif saat penulisan di test case layer (tidak perlu object instantiation lagi)
+"""
+from pages.aboutpage import AboutPageAction
+from pages.cartpage import CartPageAction
+from pages.loginpage import LoginPageAction
+from pages.productspage import ProductsPageAction
 
-
-# Buat instansiasi object dari action method seperti pada loginpage dibawah ini
-# agar lebih efektif saat penulisan di test case layer (tidak perlu object instantiation lagi)
 
 class ObjectInstances:
 
     def loginpage(self):
-        obj = LoginPageAction(self.driver)  #
-        return obj
+        return LoginPageAction(self.driver)
 
-    # def productpage(self):
-    #     obj = ProductsPageAction(self.driver)
-    #     return obj
-    #
-    # def aboutpage(self):
-    #     obj = AboutPageAction(self.driver)
-    #     return obj
-    #
-    # def cartpage(self):
-    #     obj = CartPageAction(self.driver)
-    #     return obj
+    def productpage(self):
+        return ProductsPageAction(self.driver)
+
+    def aboutpage(self):
+        return AboutPageAction(self.driver)
+
+    def cartpage(self):
+        return CartPageAction(self.driver)
