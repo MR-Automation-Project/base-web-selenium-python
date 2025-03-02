@@ -83,92 +83,40 @@ class Basemethod:
     """-----------------------Handling DROPDOWN AREA - Select and non-select---------------------------"""
 
     def _select_dropdown_by_index(self, locator, index, timeout=10):
-        """Memilih option list dalam dropdown berdasarkan index.
-        Args:
-            locator: Tuple berisi jenis locator dan nilai locator (misal: ("id", "dropdown_id")).
-            index: Index opsi yang akan dipilih (mulai dari 0).
-            timeout: default Waktu tunggu maksimum dalam detik.
-        """
-        try:
-            element = wait_for_element_to_be_presence(self.driver, locator)
-            select = Select(element) #Buat object select
-            select.select_by_index(index)
-            logging.info(f"Opsi dropdown dengan index {index} berhasil dipilih.")
-        except TimeoutException:
-            logging.error(f"Timeout saat menunggu dropdown muncul setelah {timeout} detik.")
-            return None
-        except Exception as e: # Tangani exception umum untuk berjaga-jaga
-            logging.error(f"Terjadi kesalahan saat memilih dropdown: {e}")
-            return None
+        """Memilih option list dalam dropdown berdasarkan index."""
+        element = wait_for_element_to_be_presence(self.driver, locator)
+        select = Select(element)  # Buat object select
+        select.select_by_index(index)
+        selected_option_text = select.first_selected_option.text
+        assert selected_option_text == index, f"Opsi yang dipilih seharusnya {index}, tetapi yang terpilih adalah {selected_option_text}"
 
     def _select_dropdown_by_value(self, locator, value, timeout=10):
-        """Memilih option list dalam dropdown berdasarkan value.
-        Args:
-            locator: Tuple berisi jenis locator dan nilai locator (misal: ("id", "dropdown_id")).
-            value: Value dari opsi yang akan dipilih.
-            timeout: Waktu tunggu maksimum dalam detik.
-        """
-        try:
-            element = wait_for_element_to_be_presence(self.driver, locator)
-            select = Select(element)  # Buat objek Select
-            select.select_by_value(value)
-            logging.info(f"Opsi dropdown dengan value '{value}' berhasil dipilih.")
-        except TimeoutException:
-            logging.error(f"Timeout saat menunggu dropdown muncul setelah {timeout} detik.")
-            return None
-        except Exception as e:  # Tangani exception umum untuk berjaga-jaga
-            logging.error(f"Terjadi kesalahan saat memilih dropdown: {e}")
-            return None
+        """Memilih option list dalam dropdown berdasarkan value."""
+        element = wait_for_element_to_be_visible(self.driver, locator)
+        select = Select(element)  # Buat objek Select
+        select.select_by_value(value)
+        selected_option_text = select.first_selected_option.text
+        assert selected_option_text == value, f"Opsi yang dipilih seharusnya {value}, tetapi yang terpilih adalah {selected_option_text}"
 
-    def _select_dropdown_by_visible_text(self, locator, text, timeout=10):
-        """Memilih opsi dropdown berdasarkan teks yang terlihat.
-        Args:
-            locator: Tuple berisi jenis locator dan nilai locator.
-            text: Teks yang terlihat pada opsi yang akan dipilih.
-            timeout: Waktu tunggu maksimum dalam detik.
-        """
-        try:
-            element = wait_for_element_to_be_presence(self.driver, locator)
-            select = Select(element)
-            select.select_by_visible_text(text)
-            logging.info(f"Opsi dropdown dengan teks '{text}' berhasil dipilih.")
-        except TimeoutException:
-            logging.error(f"Timeout saat menunggu dropdown muncul setelah {timeout} detik.")
-            return None
-        except NoSuchElementException:
-            logging.error(f"Opsi dropdown dengan teks '{text}' tidak ditemukan.")
-            return None
-        except Exception as e:
-            logging.error(f"Terjadi kesalahan saat memilih dropdown: {e}")
-            return None
+    def _select_dropdown_by_visible_text(self, locator, option_text, timeout=10):
+        """Memilih option list dalam dropdown berdasarkan visible option text."""
+        element = wait_for_element_to_be_presence(self.driver, locator)
+        select = Select(element)
+        select.select_by_visible_text(option_text)
+        selected_option_text = select.first_selected_option.text
+        assert selected_option_text == option_text, f"Opsi yang dipilih seharusnya {option_text}, tetapi yang terpilih adalah {selected_option_text}"
 
     def _select_dropdown_by_text_partial(self, locator, partial_text, timeout=10):
-        """Memilih opsi dropdown berdasarkan sebagian teks yang terlihat.
-           Berguna untuk dropdown yang tidak memiliki value yang unik.
-        Args:
-            locator: Tuple berisi jenis locator dan nilai locator.
-            partial_text: Sebagian teks yang terlihat pada opsi.
-            timeout: Waktu tunggu maksimum dalam detik.
-        """
-        try:
-            element = wait_for_element_to_be_presence(self.driver, locator)
-
-            options = element.find_elements("tag name", "option")  # ambil semua option (multi elementss)
-            for option in options:
-                if partial_text in option.text:
-                    option.click()
-                    logging.info(f"Opsi dropdown dengan sebagian teks '{partial_text}' berhasil dipilih.")
-                    return True
-
-            logging.error(f"Opsi dropdown dengan sebagian teks '{partial_text}' tidak ditemukan.")
-            return None
-
-        except TimeoutException:
-            logging.error(f"Timeout saat menunggu dropdown muncul setelah {timeout} detik.")
-            return None
-        except Exception as e:
-            logging.error(f"Terjadi kesalahan saat memilih dropdown: {e}")
-            return None
+        """Memilih opsi dropdown berdasarkan sebagian teks yang terlihat."""
+        element = wait_for_element_to_be_presence(self.driver, locator)
+        options = element.find_elements("tag name", "option")  # ambil semua option (multi elementss)
+        for option in options:
+            if partial_text in option.text:
+                option.click()
+                selected_option_text = select.first_selected_option.text
+                assert selected_option_text == partial_text, f"Opsi yang dipilih seharusnya {partial_text}, tetapi yang terpilih adalah {selected_option_text}"
+                logging.info(f"Opsi dropdown dengan sebagian teks '{partial_text}' berhasil dipilih.")
+                return True
 
     def _find_option_in_dropdown(self, dropdown_element, search_strategy, search_value, timeout=10):
         """Mencari elemen opsi dropdown berdasarkan strategi dan nilai pencarian.
