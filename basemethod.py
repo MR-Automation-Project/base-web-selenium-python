@@ -5,8 +5,11 @@
 import logging
 import os
 import time
+from logging import ERROR
+
 from selenium.common import TimeoutException, NoSuchElementException
 from selenium.webdriver import ActionChains, Keys
+from selenium.webdriver.remote.errorhandler import ErrorCode
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -20,19 +23,19 @@ class Basemethod:
         self.driver = driver
 
     def _click_on(self, locator):
-        try:
-            if isinstance(locator, tuple):
-                wait_for_element_to_be_visible(self.driver, locator).click()
-            elif isinstance(locator, WebElement):
-                locator.click()
-            else:
-                raise ValueError("Invalid input locator. please give tuple format or WebElement instance")
+        # try:
+        if isinstance(locator, tuple):
+            wait_for_element_to_be_visible(self.driver, locator).click()
+        elif isinstance(locator, WebElement):
+            locator.click()
+        else:
+            raise ValueError("Invalid input locator. please give tuple format or WebElement instance")
                 # Handling Tuple --> (By.Xpath, '//div[@class="user"]'
                 # Handling WebElement  --> driver.find_element(By.ID, 'login-button')
-        except(TimeoutException, NoSuchElementException) as e:
-            logging.error(f"Error while clicking element: {e}")
-        except Exception as e:
-            logging.error(f"Error saat mengklik elemen: {e}")
+        # except(TimeoutException, NoSuchElementException, AttributeError) as e:
+        #     logging.error(f"Error while clicking element: {e}")
+        # except Exception as e:
+        #     logging.error(f"Error saat mengklik elemen: {e}")
 
     def _input(self, locator, input_text):
         element = wait_for_element_to_be_visible(self.driver, locator)
@@ -47,6 +50,9 @@ class Basemethod:
 
     def _get_text_element(self, locator):
         return wait_for_element_to_be_visible(self.driver, locator).text
+
+    def _get_all_elements_located(self, locator_elements):
+        return wait_for_all_elements_to_be_visible(self.driver, locator_elements)
 
     def _get_attribute_element(self, locator, attribute):
         return wait_for_element_to_be_visible(self.driver, locator).get_attribute(attribute)
@@ -97,9 +103,15 @@ class Basemethod:
         """Memilih option list dalam dropdown berdasarkan value."""
         element = wait_for_element_to_be_visible(self.driver, locator)
         select = Select(element)  # Buat objek Select
+        # Dapatkan teks opsi yang diharapkan berdasarkan value
+        expected_text = None
+        for option in select.options:
+            if option.get_attribute("value") == value:
+                expected_text = option.text
+                break
         select.select_by_value(value)
         selected_option_text = select.first_selected_option.text
-        assert selected_option_text == value, f"Opsi yang dipilih seharusnya {value}, tetapi yang terpilih adalah {selected_option_text}"
+        assert selected_option_text == expected_text, f"Opsi yang dipilih seharusnya {expected_text}, tetapi yang terpilih adalah {selected_option_text}"
 
     def _select_dropdown_by_visible_text(self, locator, option_text, timeout=10):
         """Memilih option list dalam dropdown berdasarkan visible option text."""
@@ -120,3 +132,42 @@ class Basemethod:
         select = Select(element)
         selected_option_text = select.first_selected_option.text
         assert partial_text in selected_option_text, f"Opsi yang dipilih tidak mengandung partial text: {partial_text}, tetapi yang terpilih adalah {selected_option_text}"
+
+    """Khusus untuk handling dropdown non-select."""
+    def _select_option_from_non_select_dropdown(self, dropDownLocator, optionText, optionListsLocator,
+                                                selectedOptionLocator, smartSearchLocator=None, timeout=10
+                                                ):
+        """
+        :param dropDownLocator: locator dropdown yang akan diklik --> biasanya tombol paling pinggir dropdownya(down arrow)
+        :param optionText: option yang ingin dipilih
+        :param optionListsLocator: get all lists of options (bisa locator hasil pencarian jika ada smartSearch function)
+        :param selectedOptionLocator: untuk assert option yang terpilih pada dropdown setelah memilih option.
+        :param smartSearchLocator: locator search area --> optional jika dropdown tdk ada fungsi search maka tdk dipakai
+        :param timeout: optional | as default 10 detik
+        """
+
+        focus_to_element(self.driver, dropDownLocator)
+        self._click_on(dropDownLocator)
+
+        # Input teks pencarian (jika ada input pencarian | OPTIONAL)
+        if smartSearchLocator:
+            self._input(smartSearchLocator, optionText)
+            try:
+                #Gunakan optionListsLocator utk get all options in lists (dari hasil pencarian ataupun listing default)
+                formatted_xpath = optionListsLocator[1].format(optionText)
+                new_xpath_list_school = (By.XPATH, formatted_xpath)
+                self._click_on(new_xpath_list_school)
+            except:
+                raise ValueError(f'gagal klik karena sekolah {optionText} tidak ada di list')
+        else:
+            try:
+                #Gunakan searchResultLocator jika element locator berbeda dengan dropdownListLocator
+                formatted_xpath = optionListsLocator[1].format(optionText)
+                new_xpath_list_school = (By.XPATH, formatted_xpath)
+                self._click_on(new_xpath_list_school)
+            except:
+                raise ValueError(f'gagal klik karena sekolah {optionText} tidak ada di list')
+
+        # Verifikasi opsi terpilih
+        selected_text = self._get_text_element(selectedOptionLocator)
+        assert optionText in selected_text, f'tidak ada bagian text {optionText} pada {selected_text}'

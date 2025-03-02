@@ -18,38 +18,30 @@ import csv
 
 def wait_for_element_to_be_visible(driver, locator, waitTime=10):
     """Menunggu hingga elemen terlihat."""
-    try:
-        element = WebDriverWait(driver, waitTime).until(EC.visibility_of_element_located(locator))
-        return element
-    except (TimeoutException, NoSuchElementException) as e:
-        logging.error(f"Element belum terlihat: {e}")
-        return None  # Mengembalikan None jika elemen tidak terlihat
+    element = WebDriverWait(driver, waitTime).until(EC.visibility_of_element_located(locator))
+    return element
+
+def wait_for_all_elements_to_be_visible(driver, locator, waitTime=10):
+    """Menunggu hingga elemen terlihat."""
+    elements = WebDriverWait(driver, waitTime).until(EC.presence_of_all_elements_located(locator))
+    return elements
 
 def wait_for_element_to_be_presence(driver, locator, waitTime=10):
     """Menunggu hingga elemen sudah tersedia di dalam DOM"""
-    try:
-        element = WebDriverWait(driver, waitTime).until(EC.presence_of_element_located(locator))
-        return element
-    except (TimeoutException, NoSuchElementException) as e:
-        logging.error(f"Element belum tersedia di DOM: {e}")
-        return None  # Mengembalikan None jika elemen tidak ditemukan di DOM
+    element = WebDriverWait(driver, waitTime).until(EC.presence_of_element_located(locator))
+    return element
+
 
 def wait_for_element_to_be_clickable(driver, locator, waitTime=10):
     """Menunggu hingga elemen sudah bisa diclicked"""
-    try:
-        element = WebDriverWait(driver, waitTime).until(EC.element_to_be_clickable(locator))
-        return element
-    except (TimeoutException, NoSuchElementException) as e:
-        logging.error(f"Element belum dapat diclick: {e}")
-        return None
+    element = WebDriverWait(driver, waitTime).until(EC.element_to_be_clickable(locator))
+    return element
+
 
 def wait_for_frame_to_be_avail_and_switch_to_it(driver, locator, waitTime=10):
-    try:
-        element = WebDriverWait(driver, waitTime).until(EC.frame_to_be_available_and_switch_to_it(locator))
-        return element
-    except (TimeoutException, NoSuchElementException) as e:
-        logging.error(f"Element not visible: {e}")
-        return None  # Mengembalikan None jika elemen tidak ditemukan
+    element = WebDriverWait(driver, waitTime).until(EC.frame_to_be_available_and_switch_to_it(locator))
+    return element
+
 
 def take_screenshot(driver, name):
     """Mengambil screenshot dan menyimpannya dalam folder 'screenshots' """
@@ -64,33 +56,47 @@ def take_screenshot(driver, name):
 
 def refresh_browser(driver):
     """Me-refresh halaman browser."""
+    time.sleep(2)
     driver.refresh()
 
 def click_back_browser(driver):
+    time.sleep(2)
     driver.back()
 
 def click_forward_browser(driver):
+    time.sleep(2)
     driver.forward()
 
 def accept_alert_prompt_browser(driver):
+    time.sleep(2)
     alert_msg = driver.switch_to.alert
     alert_msg.accept()
 
 def dismiss_alert_prompt_browser(driver):
+    time.sleep(2)
     alert_msg = driver.switch_to.alert
     alert_msg.dismiss()
 
 def press_enter_on_keyboard(driver):
+    time.sleep(2)
     actions = ActionChains(driver)
     actions.send_keys(Keys.ENTER)
     actions.perform()
 
 def press_page_down_on_keyboard(driver):
+    time.sleep(1)
     actions = ActionChains(driver).send_keys(Keys.PAGE_DOWN)
     actions.perform()
 
 def press_page_up_on_keyboard(driver):
+    time.sleep(1)
     actions = ActionChains(driver).send_keys(Keys.PAGE_UP)
+    actions.perform()
+
+def focus_to_element(driver, locator):
+    time.sleep(0.8)
+    target_element = wait_for_element_to_be_visible(driver, locator)
+    actions = ActionChains(driver).move_to_element(target_element)
     actions.perform()
 
 def get_current_url(driver, url_contains_partial_text="", timeout=10):
@@ -153,7 +159,7 @@ def generate_new_email_visiprimaqa():
     return next_email
 
 def generate_random_number():
-    counter_file = "name_counter.txt"
+    counter_file = "number_counter.txt"
 
     if not os.path.exists(counter_file):
         with open(counter_file, "w") as file:
