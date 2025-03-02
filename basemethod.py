@@ -10,7 +10,9 @@ from selenium.webdriver import ActionChains, Keys
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import Select
 from utils import *
+from selenium.webdriver.common.by import By
 
 class Basemethod:
 
@@ -85,10 +87,11 @@ class Basemethod:
     def _select_dropdown_by_index(self, locator, index, timeout=10):
         """Memilih option list dalam dropdown berdasarkan index."""
         element = wait_for_element_to_be_presence(self.driver, locator)
-        select = Select(element)  # Buat object select
+        select = Select(element) #Buat object select
+        text_of_index = select.options[index].text
         select.select_by_index(index)
         selected_option_text = select.first_selected_option.text
-        assert selected_option_text == index, f"Opsi yang dipilih seharusnya {index}, tetapi yang terpilih adalah {selected_option_text}"
+        assert selected_option_text == text_of_index, f"Opsi yang dipilih seharusnya {text_of_index}, tetapi yang terpilih adalah {selected_option_text}"
 
     def _select_dropdown_by_value(self, locator, value, timeout=10):
         """Memilih option list dalam dropdown berdasarkan value."""
@@ -109,71 +112,11 @@ class Basemethod:
     def _select_dropdown_by_text_partial(self, locator, partial_text, timeout=10):
         """Memilih opsi dropdown berdasarkan sebagian teks yang terlihat."""
         element = wait_for_element_to_be_presence(self.driver, locator)
-        options = element.find_elements("tag name", "option")  # ambil semua option (multi elementss)
+        options = element.find_elements(By.TAG_NAME, "option")  # ambil semua option yang menggunakan tag "option"
         for option in options:
             if partial_text in option.text:
                 option.click()
-                selected_option_text = select.first_selected_option.text
-                assert selected_option_text == partial_text, f"Opsi yang dipilih seharusnya {partial_text}, tetapi yang terpilih adalah {selected_option_text}"
-                logging.info(f"Opsi dropdown dengan sebagian teks '{partial_text}' berhasil dipilih.")
-                return True
-
-    def _find_option_in_dropdown(self, dropdown_element, search_strategy, search_value, timeout=10):
-        """Mencari elemen opsi dropdown berdasarkan strategi dan nilai pencarian.
-        Args:
-            dropdown_element: WebElement dari dropdown yang sudah dibuka.
-            search_strategy: Strategi pencarian (misalnya "text", "attribute", dll.).
-            search_value: Nilai yang dicari.
-            timeout: Waktu tunggu maksimum dalam detik.
-
-        Returns:
-            WebElement: Jika opsi ditemukan, mengembalikan WebElement dari opsi tersebut.
-            None: Jika opsi tidak ditemukan.
-        """
-        try:
-            if search_strategy == "text":
-                options = dropdown_element.find_elements("xpath", ".//*")  # Cari semua elemen di dalam dropdown
-                for option in options:
-                    if option.text == search_value:
-                        return option
-            elif search_strategy == "attribute":
-                # Contoh: Mencari berdasarkan atribut 'data-value'
-                option_element = dropdown_element.find_element("xpath", f".//*[@data-value='{search_value}']")
-                return option_element
-            # ... tambahkan strategi pencarian lain sesuai kebutuhan ...
-            return None  # jika tidak ada yang cocok
-
-        except TimeoutException:
-            logging.error(f"Timeout saat mencari opsi '{search_value}' di dalam dropdown.")
-            return None
-        except Exception as e:
-            logging.error(f"Terjadi kesalahan saat mencari opsi di dalam dropdown: {e}")
-            return None
-
-    def _handle_non_standard_dropdown(self, dropdown_locator, search_strategy, search_value, timeout=10):
-        """Menangani dropdown non-standar.
-        Args:
-            dropdown_locator: Tuple berisi jenis locator dan nilai locator untuk dropdown.
-            search_strategy: Strategi pencarian (misalnya "text", "attribute").
-            search_value: Nilai yang dicari.
-            timeout: Waktu tunggu maksimum dalam detik.
-        """
-        try:
-            dropdown_element = wait_for_element_to_be_clickable(self.driver, dropdown_locator)
-            dropdown_element.click()  # Buka dropdown
-            option_element = self._find_option_in_dropdown(dropdown_element, search_strategy, search_value)
-
-            if option_element:
-                option_element.click()
-                logging.info(f"Opsi dropdown non-standar dengan {search_strategy} '{search_value}' berhasil dipilih.")
-                return True
-            else:
-                logging.error(f"Opsi dengan {search_strategy} '{search_value}' tidak ditemukan di dalam dropdown.")
-                return None
-
-        except TimeoutException:
-            logging.error(f"Timeout saat menunggu dropdown muncul setelah {timeout} detik.")
-            return None
-        except Exception as e:
-            logging.error(f"Terjadi kesalahan saat menangani dropdown non-standar: {e}")
-            return None
+                break
+        select = Select(element)
+        selected_option_text = select.first_selected_option.text
+        assert partial_text in selected_option_text, f"Opsi yang dipilih tidak mengandung partial text: {partial_text}, tetapi yang terpilih adalah {selected_option_text}"
