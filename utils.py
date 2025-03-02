@@ -2,7 +2,8 @@
     utils.py : action helper umum yang bisa digunakan lebih luas.
                 bisa digunakan pada layer : test class, pages, dan basemethod
 """
-
+from datetime import datetime, timedelta
+import random
 import logging
 import os
 import time
@@ -11,6 +12,8 @@ from selenium.webdriver import ActionChains, Keys
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+import json
+import csv
 
 
 def wait_for_element_to_be_visible(driver, locator, waitTime=10):
@@ -111,3 +114,142 @@ def get_current_url(driver, url_contains_partial_text="", timeout=10):
     except TimeoutException:
         logging.error(f"Timeout saat menunggu URL yang mengandung '{url_contains_partial_text}' setelah {timeout} detik")
         return None
+
+"""--------------------Generate data random suc as email, name, phone number, etc---------------------------------"""
+
+def generate_random_phone_number_plus62():
+    return f"+62{random.randint(1000000000, 9999999999)}"
+
+def generate_random_phone_number_62():
+    return f"+62{random.randint(1000000000, 9999999999)}"
+
+def generate_random_phone_number_0():
+    return f"081{random.randint(1000000000, 9999999999)}"
+
+def generate_new_email_visiprimaqa():
+    # Path to the counter file
+    counter_file = 'email_counter.txt'
+
+    # Check if the file exists and is not empty
+    if os.path.exists(counter_file) and os.path.getsize(counter_file) > 0:
+        with open(counter_file, 'r') as file:
+            try:
+                counter = int(file.read().strip())  # Try reading the existing counter value
+            except ValueError:
+                counter = 1  # Default to 1 if the file is corrupted or empty
+    else:
+        counter = 1  # Start at 1 if file does not exist or is empty
+
+    email_prefix = "visiprimaqa+"
+    domain = "@gmail.com"
+
+    # Generate the next email
+    next_email = f"{email_prefix}{counter}{domain}"
+
+    # Increment the counter and save it back to the file
+    with open(counter_file, 'w') as file:
+        file.write(str(counter + 1))
+
+    return next_email
+
+def generate_random_number():
+    counter_file = "name_counter.txt"
+
+    if not os.path.exists(counter_file):
+        with open(counter_file, "w") as file:
+            file.write("1")
+
+    # Baca counter saat ini dari file
+    with open(counter_file, "r") as file:
+        counter = int(file.read().strip())
+
+    # Generate name
+    number = f"{counter}"
+
+    # Increment counter
+    with open(counter_file, "w") as file:
+        file.write(str(counter + 1))
+
+    return number
+
+"""------------------------------------ DATE HANDLING -------------------------------------------------"""
+class DateHandling:
+    def get_current_date(self, format="%Y-%m-%d"):
+        return datetime.now().strftime(format)
+
+    def adding_current_date(self, days, format="%d-%m-%Y"):
+        """days = jumlah hari yang ingin ditambah, misal 5 --> maka akan tambah 5 hari kedepan dari hari ini"""
+        return (datetime.now() + timedelta(days=days)).strftime(format)
+
+    def minus_current_date(self, days, format="%d-%m-%Y"):
+        """days = jumlah hari yang ingin dikurangi, misal 5 --> maka akan mundur 5 hari kebelakang dari hari ini"""
+        return (datetime.now() - timedelta(days=days)).strftime(format)
+
+
+"""----------------------------------- FILE HANDLING ---------------------------------------------------"""
+class FileHandling:
+    """
+    Note :
+        - Beberapa fungsi file handling dibawah ini masih dalam tahap research dan pengujian, belum fully works sepenuhnya.
+    """
+
+    # 1. Function to read a text file and return its content
+    def read_text_file(self, file_path):
+        """Reads and returns content of a text file."""
+        if os.path.exists(file_path):
+            with open(file_path, 'r', encoding='utf-8') as file:
+                return file.read()
+        else:
+            raise FileNotFoundError(f"The file {file_path} does not exist")
+
+    # 2. Function to write content to a text file
+    def write_text_file(self, file_path, content):
+        """Writes content to a text file."""
+        with open(file_path, 'w', encoding='utf-8') as file:
+            file.write(content)
+
+    # 3. Function to read a JSON file
+    def read_json_file(self, file_path):
+        """Reads and returns the content of a JSON file."""
+        if os.path.exists(file_path):
+            with open(file_path, 'r', encoding='utf-8') as file:
+                return json.load(file)
+        else:
+            raise FileNotFoundError(f"The file {file_path} does not exist")
+
+    # 4. Function to write data to a JSON file
+    def write_json_file(self, file_path, data):
+        """Writes data to a JSON file."""
+        with open(file_path, 'w', encoding='utf-8') as file:
+            json.dump(data, file, indent=4)
+
+    # 5. Function to read CSV file and return it as a list of dictionaries
+    def read_csv_file(self, file_path):
+        """Reads a CSV file and returns a list of dictionaries."""
+        if os.path.exists(file_path):
+            with open(file_path, 'r', newline='', encoding='utf-8') as file:
+                reader = csv.DictReader(file)
+                return list(reader)
+        else:
+            raise FileNotFoundError(f"The file {file_path} does not exist")
+
+    # 6. Function to write data to CSV file (list of dictionaries)
+    def write_csv_file(self, file_path, data, fieldnames):
+        """Writes data (list of dictionaries) to a CSV file."""
+        with open(file_path, 'w', newline='', encoding='utf-8') as file:
+            writer = csv.DictWriter(file, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(data)
+
+    # 7. Function to check if a file exists
+    def check_file_exists(self, file_path):
+        """Checks if a file exists and returns True or False."""
+        return os.path.exists(file_path)
+
+    # 8. Function to delete a file
+    def delete_file(self, file_path):
+        """Deletes a file."""
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        else:
+            raise FileNotFoundError(f"The file {file_path} does not exist")
